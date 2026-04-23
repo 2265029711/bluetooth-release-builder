@@ -1,4 +1,4 @@
 interface:
   display_name: "蓝牙版本发布助手"
-  short_description: "用于蓝牙嵌入式版本差异修改、编译与发布 bin 处理"
-  default_prompt: "使用 $bluetooth-release-builder，先用中文补齐缺失的默认项目配置，再按“需要贴参数”或“固定目标修改”两种模式帮我处理版本差异，完整读取目标文件，按最小改动原则只改明确指定的参数，只给出发布命名建议，并在最后汇总修改位置与修改内容。"
+  short_description: "用于蓝牙嵌入式版本差异修改、快速编译与修改位置汇总处理"
+  default_prompt: "使用 $bluetooth-release-builder，并优先运行 scripts/bootstrap_context.py 判断下一步。若修改记录已命中，且我已明确给出宏值或参数内容，就直接修改并编译，不要重复确认；同一文件里的多处修改请一次性处理；最后只汇总修改了哪些位置、改了什么以及编译结果。"

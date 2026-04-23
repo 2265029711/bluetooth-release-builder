@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """
-保存或更新已确认的修改记录。
+功能:
+    保存或更新结构化修改记录。
+
+说明:
+    这个脚本用于持久化已经确认过的修改位置、符号、修改意图、
+    输入模式等信息，方便后续版本修改时复用历史定位结果，减少
+    重复搜索和重复确认。
 """
 
 from __future__ import annotations
@@ -13,23 +19,72 @@ from pathlib import Path
 
 
 def load_json(path: Path, default: dict) -> dict:
+    """读取 JSON 文件。
+
+    参数:
+        path: JSON 文件路径。
+        default: 文件不存在时返回的默认值。
+
+    返回:
+        解析后的字典对象；若文件不存在，则返回默认值。
+
+    异常:
+        json.JSONDecodeError: 文件内容不是合法 JSON 时抛出。
+    """
     if not path.exists():
         return default
     return json.loads(path.read_text(encoding="utf-8"))
 
 
 def write_json(path: Path, data: dict) -> None:
+    """写入 JSON 文件。
+
+    参数:
+        path: 目标 JSON 文件路径。
+        data: 待写入的数据字典。
+    """
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def resolve_project_id(registry: dict, project_id: str | None) -> str:
+    """解析项目标识。
+
+    参数:
+        registry: 项目注册表内容。
+        project_id: 命令行显式传入的项目标识。
+
+    返回:
+        显式项目标识，或注册表中的默认项目标识。
+
+    异常:
+        ValueError: 未传入项目标识且不存在默认项目时抛出。
+    """
     resolved = project_id or registry.get("default_project_id")
     if not isinstance(resolved, str) or not resolved:
         raise ValueError("未提供 project_id，且当前没有已保存的默认项目。")
     return resolved
 
 
-def resolve_variant_key(registry: dict, project_id: str, variant_key: str | None, match_scope: str) -> str:
+def resolve_variant_key(
+    registry: dict,
+    project_id: str,
+    variant_key: str | None,
+    match_scope: str,
+) -> str:
+    """解析版本目录键。
+
+    参数:
+        registry: 项目注册表内容。
+        project_id: 当前项目标识。
+        variant_key: 命令行显式传入的版本目录键。
+        match_scope: 记录作用域，可能是 `variant` 或 `common`。
+
+    返回:
+        `common`，或显式版本目录键，或当前项目的默认版本目录键。
+
+    异常:
+        ValueError: 未传入版本目录键且项目中也没有默认版本时抛出。
+    """
     if match_scope == "common":
         return "common"
     if variant_key:
@@ -46,6 +101,12 @@ def resolve_variant_key(registry: dict, project_id: str, variant_key: str | None
 
 
 def main() -> int:
+    """命令行入口函数。
+
+    返回:
+        0 表示写入成功。
+        1 表示读取失败或参数不合法。
+    """
     parser = argparse.ArgumentParser(description="保存或更新修改记录。")
     parser.add_argument("--change-item", required=True, help="修改项，例如 default-eq。")
     parser.add_argument("--project-id", help="项目标识；不传时自动使用默认项目。")
@@ -91,10 +152,21 @@ def main() -> int:
     registry_path = Path(args.registry).resolve()
 
     try:
-        registry = load_json(registry_path, {"version": 2, "default_project_id": None, "projects": []})
-        records_data = load_json(records_path, {"version": 2, "records": []})
+        registry = load_json(
+            registry_path,
+            {"version": 2, "default_project_id": None, "projects": []},
+        )
+        records_data = load_json(
+            records_path,
+            {"version": 2, "records": []},
+        )
         project_id = resolve_project_id(registry, args.project_id)
-        variant_key = resolve_variant_key(registry, project_id, args.variant_key, args.match_scope)
+        variant_key = resolve_variant_key(
+            registry,
+            project_id,
+            args.variant_key,
+            args.match_scope,
+        )
     except (ValueError, json.JSONDecodeError) as exc:
         print(f"读取记录失败：{exc}")
         return 1

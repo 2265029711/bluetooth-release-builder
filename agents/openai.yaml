@@ -1,4 +1,4 @@
 interface:
   display_name: "蓝牙版本发布助手"
   short_description: "用于蓝牙嵌入式版本差异修改、编译与发布 bin 处理"
-  default_prompt: "使用 $bluetooth-release-builder，先用中文补齐缺失的默认项目配置，再按“需要贴参数”或“固定目标修改”两种模式帮我处理版本差异并准备发布 bin。"
+  default_prompt: "使用 $bluetooth-release-builder，先用中文补齐缺失的默认项目配置，再按“需要贴参数”或“固定目标修改”两种模式帮我处理版本差异，完整读取目标文件，按最小改动原则只改明确指定的参数，只给出发布命名建议，并在最后汇总修改位置与修改内容。"

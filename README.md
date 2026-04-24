@@ -1,5 +1,7 @@
 # bluetooth-release-builder
 
+> Note: the scripts now support both `python` 2.7 and 3.x runtimes.
+
 面向蓝牙嵌入式版本出具流程的 Skill。
 
 这个 skill 主要解决同一套蓝牙固件工程因默认 EQ、宏开关、配置差异而需要反复出不同版本包的问题。它会优先复用已经保存的项目首选项和历史修改记录，在信息足够明确时直接修改并编译；在信息不完整时，只用中文补问当前真正缺失的那一项。
@@ -37,6 +39,7 @@ bluetooth-release-builder/
 └── scripts/
     ├── bootstrap_context.py
     ├── find_change_record.py
+    ├── pycompat.py
     ├── resolve_release_bin.py
     ├── save_change_record.py
     ├── save_project_preference.py
@@ -150,7 +153,7 @@ python scripts/validate_skill.py .
 检查 Python 语法：
 
 ```bash
-python -m py_compile scripts/bootstrap_context.py scripts/find_change_record.py scripts/resolve_release_bin.py scripts/save_change_record.py scripts/save_project_preference.py scripts/validate_skill.py
+python -m py_compile scripts/pycompat.py scripts/bootstrap_context.py scripts/find_change_record.py scripts/resolve_release_bin.py scripts/save_change_record.py scripts/save_project_preference.py scripts/validate_skill.py
 ```
 
 ## 说明

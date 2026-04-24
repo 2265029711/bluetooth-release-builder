@@ -1,156 +1,101 @@
-#!/usr/bin/env python3
-"""
-功能:
-    保存或更新结构化修改记录。
-
-说明:
-    这个脚本用于持久化已经确认过的修改位置、符号、修改意图、
-    输入模式等信息，方便后续版本修改时复用历史定位结果，减少
-    重复搜索和重复确认。
-"""
-
-from __future__ import annotations
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from __future__ import print_function
 
 import argparse
-import json
+import os
 import sys
 from datetime import date
-from pathlib import Path
-from typing import Optional
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+if SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, SCRIPT_DIR)
+
+from pycompat import JSONDecodeError
+from pycompat import STRING_TYPES
+from pycompat import load_json_file
+from pycompat import normalize_namespace
+from pycompat import print_json
+from pycompat import print_text
+from pycompat import write_json_file
 
 
-def load_json(path: Path, default: dict) -> dict:
-    """读取 JSON 文件。
-
-    参数:
-        path: JSON 文件路径。
-        default: 文件不存在时返回的默认值。
-
-    返回:
-        解析后的字典对象；若文件不存在，则返回默认值。
-
-    异常:
-        json.JSONDecodeError: 文件内容不是合法 JSON 时抛出。
-    """
-    if not path.exists():
+def load_json(path, default):
+    if not os.path.exists(path):
         return default
-    return json.loads(path.read_text(encoding="utf-8"))
+    return load_json_file(path)
 
 
-def write_json(path: Path, data: dict) -> None:
-    """写入 JSON 文件。
-
-    参数:
-        path: 目标 JSON 文件路径。
-        data: 待写入的数据字典。
-    """
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-
-
-def resolve_project_id(registry: dict, project_id: Optional[str]) -> str:
-    """解析项目标识。
-
-    参数:
-        registry: 项目注册表内容。
-        project_id: 命令行显式传入的项目标识。
-
-    返回:
-        显式项目标识，或注册表中的默认项目标识。
-
-    异常:
-        ValueError: 未传入项目标识且不存在默认项目时抛出。
-    """
+def resolve_project_id(registry, project_id):
     resolved = project_id or registry.get("default_project_id")
-    if not isinstance(resolved, str) or not resolved:
+    if not isinstance(resolved, STRING_TYPES) or not resolved:
         raise ValueError("未提供 project_id，且当前没有已保存的默认项目。")
     return resolved
 
 
-def resolve_variant_key(
-    registry: dict,
-    project_id: str,
-    variant_key: Optional[str],
-    match_scope: str,
-) -> str:
-    """解析版本目录键。
-
-    参数:
-        registry: 项目注册表内容。
-        project_id: 当前项目标识。
-        variant_key: 命令行显式传入的版本目录键。
-        match_scope: 记录作用域，可能是 `variant` 或 `common`。
-
-    返回:
-        `common`，或显式版本目录键，或当前项目的默认版本目录键。
-
-    异常:
-        ValueError: 未传入版本目录键且项目中也没有默认版本时抛出。
-    """
+def resolve_variant_key(registry, project_id, variant_key, match_scope):
     if match_scope == "common":
         return "common"
+
     if variant_key:
         return variant_key
 
     for project in registry.get("projects", []):
         if project.get("project_id") != project_id:
             continue
+
         preferred_variant_key = project.get("preferred_variant_key")
-        if isinstance(preferred_variant_key, str) and preferred_variant_key:
+        if isinstance(preferred_variant_key, STRING_TYPES) and preferred_variant_key:
             return preferred_variant_key
         break
+
     raise ValueError("未提供 variant_key，且当前项目没有已保存的默认版本目录。")
 
 
-def main() -> int:
-    """命令行入口函数。
-
-    返回:
-        0 表示写入成功。
-        1 表示读取失败或参数不合法。
-    """
-    parser = argparse.ArgumentParser(description="保存或更新修改记录。")
-    parser.add_argument("--change-item", required=True, help="修改项，例如 default-eq。")
-    parser.add_argument("--project-id", help="项目标识；不传时自动使用默认项目。")
-    parser.add_argument("--variant-key", help="版本目录；不传时自动使用默认版本。")
+def main():
+    parser = argparse.ArgumentParser(description=u"保存或更新修改记录。")
+    parser.add_argument("--change-item", required=True, help=u"修改项，例如 default-eq。")
+    parser.add_argument("--project-id", help=u"项目标识；不传时自动使用默认项目。")
+    parser.add_argument("--variant-key", help=u"版本目录；不传时自动使用默认版本。")
     parser.add_argument(
         "--match-scope",
         default="variant",
         choices=["variant", "common"],
-        help="记录作用域，默认是 variant。",
+        help=u"记录作用域，默认是 variant。",
     )
-    parser.add_argument("--files", nargs="+", required=True, help="确认修改的文件路径列表。")
-    parser.add_argument("--symbols", nargs="+", required=True, help="确认修改的符号或配置项列表。")
-    parser.add_argument("--edit-intent", required=True, help="本次修改意图说明。")
-    parser.add_argument("--change-tags", nargs="+", required=True, help="发布文件名使用的标签列表。")
+    parser.add_argument("--files", nargs="+", required=True, help=u"确认修改的文件路径列表。")
+    parser.add_argument("--symbols", nargs="+", required=True, help=u"确认修改的符号或配置项列表。")
+    parser.add_argument("--edit-intent", required=True, help=u"本次修改意图说明。")
+    parser.add_argument("--change-tags", nargs="+", required=True, help=u"发布文件名使用的标签列表。")
     parser.add_argument(
         "--input-mode",
         choices=["needs-values", "fixed-target"],
-        help="输入模式：需要用户贴参数，或固定目标修改。",
+        help=u"输入模式：需要用户贴参数，或固定目标修改。",
     )
-    parser.add_argument("--value-prompt", help="缺参数时对用户的中文提问模板。")
-    parser.add_argument("--value-format-hint", help="参数格式提示，例如按代码格式直接粘贴。")
-    parser.add_argument("--fixed-change-hint", help="固定目标修改说明，例如 VIVO_ID_LOG = 0。")
-    parser.add_argument("--last-value-text", help="最近一次用户确认的原始参数文本。")
-    parser.add_argument("--confirmation-note", required=True, help="确认说明。")
+    parser.add_argument("--value-prompt", help=u"缺参数时对用户的中文提问模板。")
+    parser.add_argument("--value-format-hint", help=u"参数格式提示，例如按代码格式直接粘贴。")
+    parser.add_argument("--fixed-change-hint", help=u"固定目标修改说明，例如 VIVO_ID_LOG = 0。")
+    parser.add_argument("--last-value-text", help=u"最近一次用户确认的原始参数文本。")
+    parser.add_argument("--confirmation-note", required=True, help=u"确认说明。")
     parser.add_argument(
         "--last-confirmed-at",
         default=str(date.today()),
-        help="确认日期，默认使用今天。",
+        help=u"确认日期，默认使用今天。",
     )
     parser.add_argument(
         "--records",
         default="references/change-records.json",
-        help="change-records.json 的路径。",
+        help=u"change-records.json 的路径。",
     )
     parser.add_argument(
         "--registry",
         default="references/project-registry.json",
-        help="project-registry.json 的路径。",
+        help=u"project-registry.json 的路径。",
     )
-    args = parser.parse_args()
+    args = normalize_namespace(parser.parse_args())
 
-    records_path = Path(args.records).resolve()
-    registry_path = Path(args.registry).resolve()
+    records_path = os.path.abspath(args.records)
+    registry_path = os.path.abspath(args.registry)
 
     try:
         registry = load_json(
@@ -168,11 +113,15 @@ def main() -> int:
             args.variant_key,
             args.match_scope,
         )
-    except (ValueError, json.JSONDecodeError) as exc:
-        print(f"读取记录失败：{exc}")
+    except (IOError, OSError, ValueError, JSONDecodeError) as exc:
+        print_text(u"读取记录失败：{}".format(exc))
         return 1
 
     records = records_data.setdefault("records", [])
+    if not isinstance(records, list):
+        print_text(u"读取记录失败：records 字段必须是列表。")
+        return 1
+
     existing = None
     for record in records:
         if (
@@ -203,6 +152,7 @@ def main() -> int:
             "confirmation_note": args.confirmation_note,
         }
     )
+
     optional_updates = {
         "input_mode": args.input_mode,
         "value_prompt": args.value_prompt,
@@ -215,21 +165,17 @@ def main() -> int:
             existing[key] = value
 
     records_data["version"] = 2
-    write_json(records_path, records_data)
+    write_json_file(records_path, records_data)
 
-    print(
-        json.dumps(
-            {
-                "status": "ok",
-                "created": created,
-                "project_id": project_id,
-                "variant_key": variant_key,
-                "change_item": args.change_item,
-                "input_mode": existing.get("input_mode"),
-            },
-            ensure_ascii=False,
-            indent=2,
-        )
+    print_json(
+        {
+            "status": "ok",
+            "created": created,
+            "project_id": project_id,
+            "variant_key": variant_key,
+            "change_item": args.change_item,
+            "input_mode": existing.get("input_mode"),
+        }
     )
     return 0
 

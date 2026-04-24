@@ -18,6 +18,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import Optional, Tuple
 
 EXPECTED_SKILL_NAME = "bluetooth-release-builder"
 LEGACY_DIRECTORY_NAMES = {"version-skills"}
@@ -108,7 +109,7 @@ def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def validate_skill_md(skill_dir: Path) -> tuple[list[str], str | None]:
+def validate_skill_md(skill_dir: Path) -> Tuple[list[str], Optional[str]]:
     """校验 `SKILL.md` 的 frontmatter 和关键触发内容。
 
     参数:
@@ -168,7 +169,7 @@ def validate_skill_md(skill_dir: Path) -> tuple[list[str], str | None]:
     return errors, name or None
 
 
-def extract_interface_value(text: str, field: str) -> str | None:
+def extract_interface_value(text: str, field: str) -> Optional[str]:
     """提取 `agents/openai.yaml` 中带引号的字段值。
 
     参数:
@@ -189,7 +190,7 @@ def extract_interface_value(text: str, field: str) -> str | None:
     return None
 
 
-def validate_openai_yaml(skill_dir: Path, skill_name: str | None) -> list[str]:
+def validate_openai_yaml(skill_dir: Path, skill_name: Optional[str]) -> list[str]:
     """校验 `agents/openai.yaml` 中的界面字段。
 
     参数:

@@ -17,6 +17,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 
 def load_registry(path: Path) -> dict:
@@ -34,7 +35,7 @@ def load_registry(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def resolve_project(registry: dict, project_id: str | None) -> dict:
+def resolve_project(registry: dict, project_id: Optional[str]) -> dict:
     """解析目标项目配置。
 
     参数:
@@ -57,7 +58,7 @@ def resolve_project(registry: dict, project_id: str | None) -> dict:
     raise ValueError(f"未找到项目：{resolved_project_id}")
 
 
-def resolve_variant(project: dict, variant_key: str | None) -> dict:
+def resolve_variant(project: dict, variant_key: Optional[str]) -> dict:
     """解析目标版本配置。
 
     参数:

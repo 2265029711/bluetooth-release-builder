@@ -22,9 +22,10 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import Optional, Tuple
 
 
-def load_json(path: Path, default: dict | None = None) -> dict:
+def load_json(path: Path, default: Optional[dict] = None) -> dict:
     """读取 JSON 文件。
 
     参数:
@@ -45,7 +46,7 @@ def load_json(path: Path, default: dict | None = None) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def resolve_default_project_id(registry: dict, project_id: str | None) -> str | None:
+def resolve_default_project_id(registry: dict, project_id: Optional[str]) -> Optional[str]:
     """解析项目标识。
 
     参数:
@@ -61,7 +62,7 @@ def resolve_default_project_id(registry: dict, project_id: str | None) -> str | 
     return value if isinstance(value, str) and value else None
 
 
-def resolve_project(registry: dict, project_id: str | None) -> dict | None:
+def resolve_project(registry: dict, project_id: Optional[str]) -> Optional[dict]:
     """根据项目标识查找项目配置。
 
     参数:
@@ -79,7 +80,7 @@ def resolve_project(registry: dict, project_id: str | None) -> dict | None:
     return None
 
 
-def resolve_variant_key(project: dict | None, variant_key: str | None) -> str | None:
+def resolve_variant_key(project: Optional[dict], variant_key: Optional[str]) -> Optional[str]:
     """解析版本目录键。
 
     参数:
@@ -99,10 +100,10 @@ def resolve_variant_key(project: dict | None, variant_key: str | None) -> str | 
 
 def find_record(
     records: list[dict],
-    project_id: str | None,
-    variant_key: str | None,
-    change_item: str | None,
-) -> tuple[str, dict] | None:
+    project_id: Optional[str],
+    variant_key: Optional[str],
+    change_item: Optional[str],
+) -> Optional[Tuple[str, dict]]:
     """查找修改记录。
 
     参数:
@@ -139,7 +140,7 @@ def find_record(
     return None
 
 
-def infer_change_item(request_text: str) -> str | None:
+def infer_change_item(request_text: str) -> Optional[str]:
     """从用户原话中推断修改项。
 
     参数:
@@ -226,7 +227,7 @@ def looks_like_explicit_target_value(request_text: str) -> bool:
     return False
 
 
-def missing_project_fields(project: dict | None) -> list[str]:
+def missing_project_fields(project: Optional[dict]) -> list[str]:
     """列出缺失的项目首选项字段。
 
     参数:
@@ -250,11 +251,11 @@ def missing_project_fields(project: dict | None) -> list[str]:
 
 def decide_action(
     request_text: str,
-    project: dict | None,
-    project_id: str | None,
-    variant_key: str | None,
-    change_item: str | None,
-    record_match: tuple[str, dict] | None,
+    project: Optional[dict],
+    project_id: Optional[str],
+    variant_key: Optional[str],
+    change_item: Optional[str],
+    record_match: Optional[Tuple[str, dict]],
 ) -> dict:
     """根据上下文决定 skill 的下一步动作。
 

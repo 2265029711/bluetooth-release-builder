@@ -16,6 +16,7 @@ import json
 import sys
 from datetime import date
 from pathlib import Path
+from typing import Optional
 
 
 def load_json(path: Path, default: dict) -> dict:
@@ -46,7 +47,7 @@ def write_json(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
-def resolve_project_id(registry: dict, project_id: str | None) -> str:
+def resolve_project_id(registry: dict, project_id: Optional[str]) -> str:
     """解析项目标识。
 
     参数:
@@ -68,7 +69,7 @@ def resolve_project_id(registry: dict, project_id: str | None) -> str:
 def resolve_variant_key(
     registry: dict,
     project_id: str,
-    variant_key: str | None,
+    variant_key: Optional[str],
     match_scope: str,
 ) -> str:
     """解析版本目录键。

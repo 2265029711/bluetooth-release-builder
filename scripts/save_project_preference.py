@@ -16,6 +16,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import Optional
 
 
 def load_registry(path: Path) -> dict:
@@ -80,8 +81,8 @@ def make_unique_project_id(base_id: str, projects: list[dict]) -> str:
 
 
 def derive_project_id(
-    display_name: str | None,
-    root_hint: str | None,
+    display_name: Optional[str],
+    root_hint: Optional[str],
     projects: list[dict],
 ) -> str:
     """推导项目标识。
@@ -115,7 +116,7 @@ def derive_project_id(
     return make_unique_project_id(base_id, projects)
 
 
-def find_project(projects: list[dict], project_id: str) -> dict | None:
+def find_project(projects: list[dict], project_id: str) -> Optional[dict]:
     """查找项目配置。
 
     参数:
@@ -131,7 +132,7 @@ def find_project(projects: list[dict], project_id: str) -> dict | None:
     return None
 
 
-def find_variant(project: dict, variant_key: str) -> dict | None:
+def find_variant(project: dict, variant_key: str) -> Optional[dict]:
     """查找版本配置。
 
     参数:

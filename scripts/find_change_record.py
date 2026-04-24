@@ -18,6 +18,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import Optional, Tuple
 
 
 def load_json(path: Path) -> dict:
@@ -54,7 +55,7 @@ def load_records(path: Path) -> list[dict]:
     return records
 
 
-def resolve_default_project_id(registry_path: Path, project_id: str | None) -> str:
+def resolve_default_project_id(registry_path: Path, project_id: Optional[str]) -> str:
     """解析项目标识。
 
     参数:
@@ -77,7 +78,7 @@ def resolve_default_project_id(registry_path: Path, project_id: str | None) -> s
     return default_project_id
 
 
-def resolve_variant_key(registry_path: Path, project_id: str, variant_key: str | None) -> str:
+def resolve_variant_key(registry_path: Path, project_id: str, variant_key: Optional[str]) -> str:
     """解析版本目录键。
 
     参数:
@@ -130,7 +131,7 @@ def find_record(
     project_id: str,
     variant_key: str,
     change_item: str,
-) -> tuple[str, dict] | None:
+) -> Optional[Tuple[str, dict]]:
     """查找记录。
 
     参数:

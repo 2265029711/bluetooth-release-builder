@@ -16,6 +16,8 @@ from pycompat import load_json_file
 from pycompat import normalize_namespace
 from pycompat import print_json
 from pycompat import print_text
+from pycompat import reference_path
+from pycompat import resolve_cli_path
 from pycompat import write_json_file
 
 
@@ -98,13 +100,18 @@ def main():
     parser.add_argument("--root-hint", default=".", help=u"工程根目录提示，默认是当前目录。")
     parser.add_argument("--build-command", help=u"完整编译命令。")
     parser.add_argument("--artifact-root", default="out", help=u"输出根目录，默认是 out。")
-    parser.add_argument("--variant-key", help=u"默认版本目录，例如 DPD2603A。")
+    parser.add_argument(
+        "--variant-key",
+        "--preferred-variant-key",
+        dest="variant_key",
+        help=u"默认版本目录，例如 DPD2603A。",
+    )
     parser.add_argument("--artifact-dir", help=u"版本目录输出路径；不传时默认 artifact_root/variant_key。")
     parser.add_argument("--source-bin-name", help=u"该版本默认源 bin 名称。")
     parser.add_argument("--notes", help=u"补充说明。")
     parser.add_argument(
         "--registry",
-        default="references/project-registry.json",
+        default=None,
         help=u"project-registry.json 的路径。",
     )
     parser.add_argument(
@@ -114,7 +121,10 @@ def main():
     )
     args = normalize_namespace(parser.parse_args())
 
-    registry_path = os.path.abspath(args.registry)
+    registry_path = resolve_cli_path(
+        args.registry,
+        reference_path("project-registry.json"),
+    )
     try:
         registry = load_registry(registry_path)
     except (IOError, OSError, JSONDecodeError) as exc:

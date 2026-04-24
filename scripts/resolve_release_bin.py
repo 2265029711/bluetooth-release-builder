@@ -18,6 +18,8 @@ from pycompat import load_json_file
 from pycompat import normalize_namespace
 from pycompat import print_json
 from pycompat import print_text
+from pycompat import reference_path
+from pycompat import resolve_cli_path
 
 
 def resolve_project(registry, project_id):
@@ -64,10 +66,15 @@ def collect_candidates(artifact_dir):
 def main():
     parser = argparse.ArgumentParser(description=u"定位某个版本目录对应的发布源 bin。")
     parser.add_argument("--project-id", help=u"项目标识；不传时自动使用默认项目。")
-    parser.add_argument("--variant-key", help=u"版本键；不传时自动使用默认版本。")
+    parser.add_argument(
+        "--variant-key",
+        "--preferred-variant-key",
+        dest="variant_key",
+        help=u"版本键；不传时自动使用默认版本。",
+    )
     parser.add_argument(
         "--registry",
-        default="references/project-registry.json",
+        default=None,
         help=u"project-registry.json 的路径。",
     )
     parser.add_argument(
@@ -88,7 +95,10 @@ def main():
     )
     args = normalize_namespace(parser.parse_args())
 
-    registry_path = os.path.abspath(args.registry)
+    registry_path = resolve_cli_path(
+        args.registry,
+        reference_path("project-registry.json"),
+    )
     if not os.path.exists(registry_path):
         print_text(u"未找到项目注册表：{}".format(registry_path))
         return 1

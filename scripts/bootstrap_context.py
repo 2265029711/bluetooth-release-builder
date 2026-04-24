@@ -16,6 +16,8 @@ from pycompat import STRING_TYPES
 from pycompat import load_json_file
 from pycompat import normalize_namespace
 from pycompat import print_json
+from pycompat import reference_path
+from pycompat import resolve_cli_path
 
 
 def load_json(path, default=None):
@@ -244,21 +246,32 @@ def main():
     parser.add_argument("--request-text", required=True, help=u"用户本次请求文本。")
     parser.add_argument("--change-item", help=u"可选，手动指定 change_item。")
     parser.add_argument("--project-id", help=u"可选，手动指定项目标识。")
-    parser.add_argument("--variant-key", help=u"可选，手动指定版本目录。")
+    parser.add_argument(
+        "--variant-key",
+        "--preferred-variant-key",
+        dest="variant_key",
+        help=u"可选，手动指定版本目录。",
+    )
     parser.add_argument(
         "--registry",
-        default="references/project-registry.json",
+        default=None,
         help=u"project-registry.json 路径。",
     )
     parser.add_argument(
         "--records",
-        default="references/change-records.json",
+        default=None,
         help=u"change-records.json 路径。",
     )
     args = normalize_namespace(parser.parse_args())
 
-    registry_path = os.path.abspath(args.registry)
-    records_path = os.path.abspath(args.records)
+    registry_path = resolve_cli_path(
+        args.registry,
+        reference_path("project-registry.json"),
+    )
+    records_path = resolve_cli_path(
+        args.records,
+        reference_path("change-records.json"),
+    )
 
     try:
         registry = load_json(

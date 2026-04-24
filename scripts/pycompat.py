@@ -9,6 +9,8 @@ import os
 import sys
 
 PY2 = sys.version_info[0] == 2
+PYCOMPAT_DIR = os.path.dirname(os.path.abspath(__file__))
+SKILL_ROOT = os.path.dirname(PYCOMPAT_DIR)
 
 if PY2:
     STRING_TYPES = (basestring,)
@@ -100,6 +102,23 @@ def json_dumps(data):
 
 def write_json_file(path, data):
     write_text(path, json_dumps(data) + u"\n", encoding="utf-8")
+
+
+def skill_path(*parts):
+    path = SKILL_ROOT
+    for part in parts:
+        path = os.path.join(path, part)
+    return path
+
+
+def reference_path(filename):
+    return skill_path("references", filename)
+
+
+def resolve_cli_path(path_value, default_path):
+    if path_value:
+        return os.path.abspath(path_value)
+    return default_path
 
 
 def print_text(value):

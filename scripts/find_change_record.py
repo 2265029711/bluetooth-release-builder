@@ -16,6 +16,8 @@ from pycompat import load_json_file
 from pycompat import normalize_namespace
 from pycompat import print_json
 from pycompat import print_text
+from pycompat import reference_path
+from pycompat import resolve_cli_path
 
 
 def load_records(path):
@@ -78,22 +80,33 @@ def find_record(records, project_id, variant_key, change_item):
 def main():
     parser = argparse.ArgumentParser(description=u"查询版本发布修改记录。")
     parser.add_argument("--project-id", help=u"项目标识；不传时自动使用默认项目。")
-    parser.add_argument("--variant-key", help=u"版本目录键；不传时自动使用默认版本。")
+    parser.add_argument(
+        "--variant-key",
+        "--preferred-variant-key",
+        dest="variant_key",
+        help=u"版本目录键；不传时自动使用默认版本。",
+    )
     parser.add_argument("--change-item", required=True, help=u"修改项，例如 default-eq。")
     parser.add_argument(
         "--records",
-        default="references/change-records.json",
+        default=None,
         help=u"change-records.json 的路径。",
     )
     parser.add_argument(
         "--registry",
-        default="references/project-registry.json",
+        default=None,
         help=u"project-registry.json 的路径。",
     )
     args = normalize_namespace(parser.parse_args())
 
-    records_path = os.path.abspath(args.records)
-    registry_path = os.path.abspath(args.registry)
+    records_path = resolve_cli_path(
+        args.records,
+        reference_path("change-records.json"),
+    )
+    registry_path = resolve_cli_path(
+        args.registry,
+        reference_path("project-registry.json"),
+    )
 
     if not os.path.exists(records_path):
         print_text(u"未找到记录文件：{}".format(records_path))

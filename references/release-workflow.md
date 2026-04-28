@@ -7,7 +7,7 @@
 优先运行：
 
 ```bash
-python scripts/bootstrap_context.py --request-text "<用户原话>"
+python "<skill-root>/scripts/bootstrap_context.py" --request-text "<用户原话>"
 ```
 
 脚本会返回一个动作：
@@ -24,7 +24,7 @@ python scripts/bootstrap_context.py --request-text "<用户原话>"
 1. 若返回 `need_project_init`，只补问缺失项。
 2. 初始化提问必须全程使用中文。
 3. 不要要求用户理解 `project_id` 这类内部字段；应询问“工程名称”“编译命令”“常用版本目录”等用户能直接回答的信息。
-4. 用户回答后，立刻调用 `scripts/save_project_preference.py` 存入 `references/project-registry.json`。
+4. 用户回答后，立刻调用 skill 自身目录下的 `scripts/save_project_preference.py` 存入 `references/project-registry.json`。
 5. 只要用户不要求更改，后续默认读取上次保存的首选项。
 
 ## 修改类型判断

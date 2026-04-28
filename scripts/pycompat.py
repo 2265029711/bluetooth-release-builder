@@ -117,7 +117,9 @@ def reference_path(filename):
 
 def resolve_cli_path(path_value, default_path):
     if path_value:
-        return os.path.abspath(path_value)
+        if os.path.isabs(path_value):
+            return os.path.abspath(path_value)
+        return os.path.abspath(os.path.join(SKILL_ROOT, path_value))
     return default_path
 
 

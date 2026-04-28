@@ -5,11 +5,22 @@ description: "用于蓝牙嵌入式工程的版本释放与差异配置处理。
 
 # 蓝牙版本发布助手
 
-处理蓝牙嵌入式项目中“同一工程、不同版本释放”的常见动作：自动初始化项目偏好、中文询问缺失信息、区分“需要贴参数”和“固定目标修改”、按最小改动原则只修改明确指定的参数、优先用 `scripts/bootstrap_context.py` 快速判断下一步动作、在信息充分时直接修改并编译、同一文件内合并处理多处目标、记住默认项目和默认版本、完整读取目标源码文件、找修改点，并在结束时汇总修改位置与修改内容。
+处理蓝牙嵌入式项目中“同一工程、不同版本释放”的常见动作：自动初始化项目偏好、中文询问缺失信息、区分“需要贴参数”和“固定目标修改”、按最小改动原则只修改明确指定的参数、优先用 skill 自身目录下的 `scripts/bootstrap_context.py` 快速判断下一步动作、在信息充分时直接修改并编译、同一文件内合并处理多处目标、记住默认项目和默认版本、完整读取目标源码文件、找修改点，并在结束时汇总修改位置与修改内容。
+
+## 路径规则
+1. 当前工作目录通常是用户工程目录，不是 skill 目录。
+2. 运行任何 bundled Python 脚本时，必须使用 skill 自身目录下的绝对路径；skill 根目录就是当前这个 `SKILL.md` 所在目录。
+3. 不要在工程目录里直接执行 `python scripts/bootstrap_context.py`、`python scripts/save_project_preference.py` 这类相对路径命令，因为那会指向工程自己的 `scripts/`。
+4. 推荐写法：
+   - `python "<skill-root>/scripts/bootstrap_context.py" --request-text "<用户原话>"`
+   - `python "<skill-root>/scripts/save_project_preference.py" ...`
+   - `python "<skill-root>/scripts/find_change_record.py" ...`
+   - `python "<skill-root>/scripts/save_change_record.py" ...`
+   - `python "<skill-root>/scripts/resolve_release_bin.py" ...`
 
 ## 快速开始
 
-1. 用户显式调用 `$bluetooth-release-builder` 时，先运行 `scripts/bootstrap_context.py`，把这次请求一次性判断成：
+1. 用户显式调用 `$bluetooth-release-builder` 时，先运行 skill 自身目录下的 `scripts/bootstrap_context.py`，把这次请求一次性判断成：
    - `need_project_init`
    - `need_change_item`
    - `need_location_confirmation`
@@ -25,12 +36,12 @@ description: "用于蓝牙嵌入式工程的版本释放与差异配置处理。
 ## 工作流程
 
 1. 启动时优先调用：
-   - `python scripts/bootstrap_context.py --request-text "<用户原话>"`
+   - `python "<skill-root>/scripts/bootstrap_context.py" --request-text "<用户原话>"`
 2. 若返回 `need_project_init`，只补问缺失项，建议短句：
    - 这个工程我怎么称呼？
    - 标准编译命令发我一下。
    - 常用版本目录是哪个？例如 `DPD2603A`
-3. 用 `scripts/save_project_preference.py` 保存用户输入，并把当前项目设为默认首选项。
+3. 用 skill 自身目录下的 `scripts/save_project_preference.py` 保存用户输入，并把当前项目设为默认首选项。
 4. 若返回 `need_change_item`，只问这次是改 EQ、宏开关还是其它配置。
 5. 若返回 `need_location_confirmation`，才搜索工程源码并把候选位置与理由交给用户确认。
 6. 若返回 `need_value_input`，只补问一次参数。
@@ -46,8 +57,8 @@ description: "用于蓝牙嵌入式工程的版本释放与差异配置处理。
    - 对应符号、宏名或函数
    - 改了什么值
    - 编译是否成功
-11. 只有当用户明确要求发布命名、源 bin、出版本文件名时，才继续执行 `scripts/resolve_release_bin.py` 和命名建议流程。
-12. 把已确认的修改位置写入 `references/change-records.json`；优先使用 `scripts/save_change_record.py` 持久化，不要只停留在对话里。
+11. 只有当用户明确要求发布命名、源 bin、出版本文件名时，才继续执行 skill 自身目录下的 `scripts/resolve_release_bin.py` 和命名建议流程。
+12. 把已确认的修改位置写入 `references/change-records.json`；优先使用 skill 自身目录下的 `scripts/save_change_record.py` 持久化，不要只停留在对话里。
 
 ## 确认规则
 
